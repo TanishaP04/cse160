@@ -18,7 +18,7 @@ function main(){
     ctx.fillRect(0,0,400,400);
 
     // red line
-    let v1 = new Vector3([2.25, 2.25, 0]);
+    let v1 = new Vector3([5, 0, 0]);
     drawVector(v1, "red");
 }
 
