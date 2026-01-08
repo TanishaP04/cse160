@@ -33,10 +33,10 @@ function drawVector(v,color){
 function handleDrawEvent(){
     //clear canvas
     ctx.fillStyle = 'black';
-    ftx.fillRect(0,0,400,400);
+    ctx.fillRect(0,0,400,400);
 
-    let x = document.getElementById("x coord").value;
-    let y = document.getElementById("y coord").value;
+    let x = document.getElementById("xcoord").value;
+    let y = document.getElementById("ycoord").value;
     let v1 = new Vector3([x,y,0]);
     drawVector(v1, "red");
 
