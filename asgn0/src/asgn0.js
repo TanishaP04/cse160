@@ -37,12 +37,11 @@ function handleDrawEvent(){
     ctx.fillStyle = 'black';
     ctx.fillRect(0,0,400,400);
 
-    let x1 = parseInt(document.getElementById("xcoord").value);
-    let y1 = parseInt(document.getElementById("ycoord").value);
+    let x1 = parseFloat(document.getElementById("xcoord").value);
+    let y1 = parseFloat(document.getElementById("ycoord").value);
 
-    let x2 = parseInt(document.getElementById("xcoord2").value);
-    let y2 = parseInt(document.getElementById("ycoord2").value);
-
+    let x2 = parseFloat(document.getElementById("xcoord2").value);
+    let y2 = parseFloat(document.getElementById("ycoord2").value);
     let v1 = new Vector3([x1,y1,0]);
     let v2 = new Vector3([x2,y2,0]);
     drawVector(v1, "red");
@@ -54,11 +53,11 @@ function handleDrawOperationEvent(){
     ctx.fillStyle = 'black';
     ctx.fillRect(0,0,400,400);
 
-    let x1 = parseInt(document.getElementById("xcoord").value);
-    let y1 = parseInt(document.getElementById("ycoord").value);
+    let x1 = parseFloat(document.getElementById("xcoord").value);
+    let y1 = parseFloat(document.getElementById("ycoord").value);
 
-    let x2 = parseInt(document.getElementById("xcoord2").value);
-    let y2 = parseInt(document.getElementById("ycoord2").value);
+    let x2 = parseFloat(document.getElementById("xcoord2").value);
+    let y2 = parseFloat(document.getElementById("ycoord2").value);
 
     let v1 = new Vector3([x1,y1,0]);
     let v2 = new Vector3([x2,y2,0]);
@@ -66,7 +65,7 @@ function handleDrawOperationEvent(){
     drawVector(v2, "blue");
 
     let operation = document.getElementById("operation").value;
-    let scalar = parseInt(document.getElementById("scalar").value);
+    let scalar = parseFloat(document.getElementById("scalar").value);
     
     if(operation == "add"){
         let v3 = new Vector3([x1, y1, 0]);
