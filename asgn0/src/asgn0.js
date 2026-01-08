@@ -1,7 +1,7 @@
 let ctx; //make ctx global
 function main(){
     //Retrieve <canvas> element 
-    var canvas = document.getElementById('example');
+    const canvas = document.getElementById('example');
     if(!canvas){
         console.log('Failed to retrieve the <canvas> element');
         return;
@@ -14,8 +14,18 @@ function main(){
     //ctx.fillRect(120,10,150,150); //fill a rectangle with the color
 
     //make background black
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0,0,400,400);
+    function main() {
+    const canvas = document.getElementById("example");
+    const ctx = canvas.getContext("2d");
+
+    // black background
+    ctx.fillStyle = "black";
+    ctx.fillRect(0, 0, 400, 400);
+
+    // BIG RED SQUARE TEST
+    ctx.fillStyle = "red";
+    ctx.fillRect(150, 150, 100, 100);
+
 
     // red line
     let v1 = new Vector3([2.25, 2.25, 0]);
