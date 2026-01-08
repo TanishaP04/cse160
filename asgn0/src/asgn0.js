@@ -29,3 +29,15 @@ function drawVector(v,color){
     ctx.lineTo(200 + v.elements[0] * 20, 200 - v.elements[1] * 20);
     ctx.stroke();
 }
+
+function handleDrawEvent(){
+    //clear canvas
+    ctx.fillStyle = 'black';
+    ftx.fillRect(0,0,400,400);
+
+    let x = document.getElementById("x coord").value;
+    let y = document.getElementById("y coord").value;
+    let v1 = new Vector3([x,y,0]);
+    drawVector(v1, "red");
+
+}
