@@ -85,7 +85,7 @@ function handleDrawOperationEvent(){
 
         let v4 = new Vector3([x2, y2, 0]);
         v4.div(scalar);
-        drawVector(v4, "yellow");
+        drawVector(v4, "green");
     }
     else if(operation == "mul"){
         let v3 = new Vector3([x1, y1, 0]);
@@ -94,7 +94,7 @@ function handleDrawOperationEvent(){
 
         let v4 = new Vector3([x2, y2, 0]);
         v4.mul(scalar);
-        drawVector(v4, "yellow");
+        drawVector(v4, "green");
     }
     else if(operation == "mag"){
         console.log("maginitude of v1: " + v1.magnitude());
@@ -107,6 +107,6 @@ function handleDrawOperationEvent(){
 
         let v4 = new Vector3([x2, y2, 0]);
         v4.normalize();
-        drawVector(v4, "yellow");
+        drawVector(v4, "green");
     }
 }
