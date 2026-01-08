@@ -37,12 +37,12 @@ function handleDrawEvent(){
     ctx.fillStyle = 'black';
     ctx.fillRect(0,0,400,400);
 
-    let x1 = document.getElementById("xcoord").value;
-    let y1 = document.getElementById("ycoord").value;
+    let x1 = parseInt(document.getElementById("xcoord").value);
+    let y1 = parseInt(document.getElementById("ycoord").value);
 
-    let x2 = document.getElementById("xcoord").value;
-    let y2 = document.getElementById("ycoord").value;
-    
+    let x2 = parseInt(document.getElementById("xcoord").value);
+    let y2 = parseInt(document.getElementById("ycoord").value);
+
     let v1 = new Vector3([x1,y1,0]);
     let v2 = new Vector3([x2,y2,0]);
     drawVector(v1, "red");
