@@ -46,6 +46,7 @@ function handleDrawEvent(){
     let v2 = new Vector3([x2,y2,0]);
     drawVector(v1, "red");
     drawVector(v2, "blue");
+    
 
 }
 
