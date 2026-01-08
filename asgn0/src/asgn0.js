@@ -17,9 +17,11 @@ function main(){
     ctx.fillStyle = 'black';
     ctx.fillRect(0,0,400,400);
 
-    // red line
+    // red line and blue line
     let v1 = new Vector3([2.25, 2.25, 0]);
     drawVector(v1, "red");
+    let v2 = new Vector3([2.25, 2.25, 0]);
+    drawVector(v2, "blue");
 }
 
 function drawVector(v,color){
@@ -38,6 +40,8 @@ function handleDrawEvent(){
     let x = document.getElementById("xcoord").value;
     let y = document.getElementById("ycoord").value;
     let v1 = new Vector3([x,y,0]);
+    let v2 = new Vector3([x,y,0]);
     drawVector(v1, "red");
+    drawVector(v2, "blue");
 
 }
