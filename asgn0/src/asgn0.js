@@ -49,3 +49,51 @@ function handleDrawEvent(){
     drawVector(v2, "blue");
 
 }
+
+function handleDrawOperationEvent(){
+    ctx.fillStyle = 'black';
+    ctx.fillRect(0,0,400,400);
+
+    let x1 = parseInt(document.getElementById("xcoord").value);
+    let y1 = parseInt(document.getElementById("ycoord").value);
+
+    let x2 = parseInt(document.getElementById("xcoord2").value);
+    let y2 = parseInt(document.getElementById("ycoord2").value);
+
+    let v1 = new Vector3([x1,y1,0]);
+    let v2 = new Vector3([x2,y2,0]);
+    drawVector(v1, "red");
+    drawVector(v2, "blue");
+
+    let operation = document.getElementById("operation").value;
+    let scalar = parseInt(document.getElementById("scalar").value);
+    
+    if(operation == "add"){
+        let v3 = new Vector3([x1, y1, 0]);
+        v3.add(v2);
+        drawVector(v3, "green");
+    }
+    else if(operation == "sub"){
+        let v3 = new Vector3([x1, y1, 0]);
+        v3.sub(v2);
+        drawVector(v3, "green");
+    }
+    else if(operation == "div"){
+        let v3 = new Vector3([x1, y1, 0]);
+        v3.div(scalar);
+        drawVector(v3, "green");
+
+        let v4 = new Vector3([x2, y2, 0]);
+        v4.div(scalar);
+        drawVector(v4, "yellow");
+    }
+    else if(operation == "mul"){
+        let v3 = new Vector3([x1, y1, 0]);
+        v3.mul(scalar);
+        drawVector(v3, "green");
+
+        let v4 = new Vector3([x2, y2, 0]);
+        v4.mul(scalar);
+        drawVector(v4, "yellow");
+    }
+}
