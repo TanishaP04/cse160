@@ -14,8 +14,8 @@ function main(){
     //ctx.fillRect(120,10,150,150); //fill a rectangle with the color
 
     //make background black
-    ctx.fillStyle = 'black';
-    ctx.fillRect(0,0,400,400);
+    //ctx.fillStyle = 'black';
+    //ctx.fillRect(0,0,400,400);
 
     // red line
     let v1 = new Vector3([2.25, 2.25, 0]);
