@@ -20,11 +20,16 @@ function main(){
     // red line
     let v1 = new Vector3([2.25, 2.25, 0]);
     drawVector(v1, 'red');
+
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(400, 400);
+    ctx.stroke();
 }
 
 function drawVector(v,color){
     ctx.strokeStyle = color;
-    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(200,200);
     ctx.lineTo(200 + v.elements[0] * 20, 200 - v.elements[1] * 20);
