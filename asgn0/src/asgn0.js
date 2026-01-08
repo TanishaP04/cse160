@@ -18,9 +18,9 @@ function main(){
     ctx.fillRect(0,0,400,400);
 
     // red line and blue line
-    let v1 = new Vector3([2.25, 2.25, 0]);
+    let v1 = new Vector3([1, 3, 0]);
     drawVector(v1, "red");
-    let v2 = new Vector3([2.25, 2.25, 0]);
+    let v2 = new Vector3([3, 1, 0]);
     drawVector(v2, "blue");
 }
 
@@ -37,10 +37,14 @@ function handleDrawEvent(){
     ctx.fillStyle = 'black';
     ctx.fillRect(0,0,400,400);
 
-    let x = document.getElementById("xcoord").value;
-    let y = document.getElementById("ycoord").value;
-    let v1 = new Vector3([x,y,0]);
-    let v2 = new Vector3([x,y,0]);
+    let x1 = document.getElementById("xcoord").value;
+    let y1 = document.getElementById("ycoord").value;
+
+    let x2 = document.getElementById("xcoord").value;
+    let y2 = document.getElementById("ycoord").value;
+    
+    let v1 = new Vector3([x1,y1,0]);
+    let v2 = new Vector3([x2,y2,0]);
     drawVector(v1, "red");
     drawVector(v2, "blue");
 
