@@ -4,7 +4,7 @@ function main(){
     var canvas = document.getElementById('example');
     if(!canvas){
         console.log('Failed to retrieve the <canvas> element');
-        return false;
+        return;
     }
     //Get the rendering context for 2DCG (assign to global `ctx`)
     ctx = canvas.getContext("2d");
@@ -18,7 +18,7 @@ function main(){
     ctx.fillRect(0,0,400,400);
 
     // red line
-    let v1 = new Vector3([5, 0, 0]);
+    let v1 = new Vector3([2.25, 2.25, 0]);
     drawVector(v1, "red");
 }
 
@@ -26,7 +26,7 @@ function drawVector(v,color){
     ctx.strokeStyle = color;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(200,200)
+    ctx.moveTo(200,200);
     ctx.lineTo(
         200 + v.elements[0] * 20,
         200 - v.elements[1] * 20
