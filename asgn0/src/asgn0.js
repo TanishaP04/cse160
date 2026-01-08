@@ -18,9 +18,9 @@ function main(){
     ctx.fillRect(0,0,400,400);
 
     // red line and blue line
-    let v1 = new Vector3([1, 3, 0]);
+    let v1 = new Vector3([0, 3, 0]);
     drawVector(v1, "red");
-    let v2 = new Vector3([3, 1, 0]);
+    let v2 = new Vector3([3, 0, 0]);
     drawVector(v2, "blue");
 }
 
