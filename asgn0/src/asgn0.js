@@ -96,4 +96,17 @@ function handleDrawOperationEvent(){
         v4.mul(scalar);
         drawVector(v4, "yellow");
     }
+    else if(operation == "mag"){
+        console.log("maginitude of v1: " + v1.magnitude());
+        console.log("magnitude of v2: " + v2.magnitude());
+    }
+    else if(operation == "norm"){
+        let v3 = new Vector3([x1, y1, 0]);
+        v3.normalize();
+        drawVector(v3, "green");
+
+        let v4 = new Vector3([x2, y2, 0]);
+        v4.normalize();
+        drawVector(v4, "yellow");
+    }
 }
