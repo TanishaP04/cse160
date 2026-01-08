@@ -14,9 +14,9 @@ function main(){
     //ctx.fillRect(120,10,150,150); //fill a rectangle with the color
 
     //make background black
-    ctx.fillStyle = 'rgba(0,0,0,1.0)';
+    ctx.fillStyle = 'black';
     ctx.fillRect(0,0,400,400);
-    
+
     // red line
     let v1 = new Vector3([2.25, 2.25, 0]);
     drawVector(v1, "red");
@@ -24,6 +24,7 @@ function main(){
 
 function drawVector(v,color){
     ctx.strokeStyle = color;
+    ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(200,200)
     ctx.lineTo(
