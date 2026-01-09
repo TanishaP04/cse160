@@ -109,4 +109,17 @@ function handleDrawOperationEvent(){
         v4.normalize();
         drawVector(v4, "green");
     }
+    let angle = angleBetween(v1, v2);
+    console.log("The angle between v1 and v2: " + angle + " degrees");
+
+}
+
+function angleBetween(v1,v2){
+    let dotProduct = Vector3.dot(v1, v2);
+    let magnitudeV1 = v1.magnitude();
+    let magnitudeV2 = v2.magnitude();
+    let cosAlpha = dotProduct / (magnitudeV1 * magnitudeV2);
+    let angleInRadians = Math.acos(cosAlpha);
+    let angleInDegrees = angleInRadians * (180 / Math.PI);
+    return angleInDegrees; 
 }
