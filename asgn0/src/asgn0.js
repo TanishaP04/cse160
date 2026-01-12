@@ -109,8 +109,14 @@ function handleDrawOperationEvent(){
         v4.normalize();
         drawVector(v4, "green");
     }
+    else if(operation == "area"){
+        let area = areaTriangle(v1, v2);
+        console.log("Area of triangle: " + area);
+}
     let angle = angleBetween(v1, v2);
     console.log("The angle between v1 and v2: " + angle + " degrees");
+
+    
 
 }
 
@@ -122,4 +128,11 @@ function angleBetween(v1,v2){
     let angleInRadians = Math.acos(cosAlpha);
     let angleInDegrees = angleInRadians * (180 / Math.PI);
     return angleInDegrees; 
+}
+
+function areaTriangle(v1, v2) {
+    let crossProduct = Vector3.cross(v1, v2);
+    let parallelogramArea = crossProduct.magnitude();
+    let triangleArea = parallelogramArea / 2;
+    return triangleArea;
 }
