@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebGL Paint Application</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        canvas {
+            border: 2px solid #333;
+            display: block;
+            margin: 20px auto;
+            cursor: crosshair;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            background: #f9f9f9;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .control-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #555;
+        }
+        input[type="range"] {
+            width: 100%;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        .shape-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .shape-btn:hover {
+            background-color: #45a049;
+        }
+        .shape-btn.active {
+            background-color: #2E7D32;
+        }
+        .clear-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        .clear-btn:hover {
+            background-color: #da190b;
+        }
+        .draw-picture-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+        .draw-picture-btn:hover {
+            background-color: #0b7dda;
+        }
+        .value-display {
+            display: inline-block;
+            margin-left: 10px;
+            color: #666;
+            font-family: monospace;
+        }
+        .reference-image {
+            max-width: 300px;
+            margin: 20px auto;
+            display: block;
+            border: 2px solid #ccc;
+        }
+        .awesomeness {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border-left: 4px solid #ffc107;
+        }
+        .awesomeness h3 {
+            margin-top: 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 WebGL Paint Application</h1>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>Red: <span class="value-display" id="redValue">255</span></label>
+                <input type="range" id="redSlider" min="0" max="255" value="255">
+            </div>
+            <div class="control-group">
+                <label>Green: <span class="value-display" id="greenValue">0</span></label>
+                <input type="range" id="greenSlider" min="0" max="255" value="0">
+            </div>
+            <div class="control-group">
+                <label>Blue: <span class="value-display" id="blueValue">0</span></label>
+                <input type="range" id="blueSlider" min="0" max="255" value="0">
+            </div>
+            <div class="control-group">
+                <label>Size: <span class="value-display" id="sizeValue">10</span></label>
+                <input type="range" id="sizeSlider" min="1" max="50" value="10">
+            </div>
+            <div class="control-group">
+                <label>Circle Segments: <span class="value-display" id="segmentsValue">12</span></label>
+                <input type="range" id="segmentsSlider" min="3" max="36" value="12">
+            </div>
+        </div>
+
+        <div style="text-align: center; margin: 20px 0;">
+            <button class="shape-btn active" id="pointBtn">Point</button>
+            <button class="shape-btn" id="triangleBtn">Triangle</button>
+            <button class="shape-btn" id="circleBtn">Circle</button>
+            <button class="clear-btn" id="clearBtn">Clear Canvas</button>
+            <button class="draw-picture-btn" id="drawPictureBtn">Draw Picture</button>
+        </div>
+
+        <canvas id="webgl" width="800" height="600"></canvas>
+
+        <div class="awesomeness">
+            <h3>✨ Awesomeness Features:</h3>
+            <ul>
+                <li><strong>Rainbow Mode:</strong> Hold SHIFT while drawing for automatic rainbow colors!</li>
+                <li><strong>Eraser:</strong> Hold CTRL/CMD to erase shapes near your cursor</li>
+                <li><strong>Undo:</strong> Press 'Z' to undo the last shape</li>
+                <li><strong>Fill Mode:</strong> Press 'F' to toggle fill/outline mode for triangles and circles</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Vertex shader program
+        var VSHADER_SOURCE = 
+            'attribute vec4 a_Position;\n' +
+            'uniform float u_Size;\n' +
+            'void main() {\n' +
+            '   gl_Position = a_Position;\n' +
+            '   gl_PointSize = u_Size;\n' + 
+            '}\n';
+
+        // Fragment shader program
+        var FSHADER_SOURCE = 
+            'precision mediump float;\n' +
+            'uniform vec4 u_FragColor;\n' +
+            'void main() {\n' + 
+            '   gl_FragColor = u_FragColor;\n' + 
+            '}\n';
+
+        // Global variables
+        var gl;
+        var canvas;
+        var a_Position;
+        var u_FragColor;
+        var u_Size;
+        var shapesList = [];
+        var currentColor = [1.0, 0.0, 0.0, 1.0];
+        var currentSize = 10.0;
+        var currentShape = 'point';
+        var currentSegments = 12;
+        var tempTrianglePoints = [];
+        var fillMode = true;
+        var rainbowHue = 0;
+
+        // Shape classes
+        class Point {
+            constructor(x, y, color, size) {
+                this.type = 'point';
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.size = size;
+            }
+
+            render() {
+                gl.uniform1f(u_Size, this.size);
+                gl.uniform4f(u_FragColor, this.color[0], this.color[1], this.color[2], this.color[3]);
+                gl.vertexAttrib3f(a_Position, this.x, this.y, 0.0);
+                gl.drawArrays(gl.POINTS, 0, 1);
+            }
+        }
+
+        class Triangle {
+            constructor(x1, y1, x2, y2, x3, y3, color) {
+                this.type = 'triangle';
+                this.vertices = [x1, y1, x2, y2, x3, y3];
+                this.color = color;
+            }
+
+            render() {
+                gl.uniform4f(u_FragColor, this.color[0], this.color[1], this.color[2], this.color[3]);
+                
+                var buffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(this.vertices), gl.STATIC_DRAW);
+                gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(a_Position);
+                
+                gl.drawArrays(fillMode ? gl.TRIANGLES : gl.LINE_LOOP, 0, 3);
+            }
+        }
+
+        class Circle {
+            constructor(x, y, radius, color, segments) {
+                this.type = 'circle';
+                this.x = x;
+                this.y = y;
+                this.radius = radius;
+                this.color = color;
+                this.segments = segments;
+            }
+
+            render() {
+                gl.uniform4f(u_FragColor, this.color[0], this.color[1], this.color[2], this.color[3]);
+                
+                var vertices = [];
+                for (var i = 0; i <= this.segments; i++) {
+                    var angle = (i / this.segments) * 2 * Math.PI;
+                    var vx = this.x + this.radius * Math.cos(angle);
+                    var vy = this.y + this.radius * Math.sin(angle);
+                    vertices.push(vx, vy);
+                }
+                
+                var buffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
+                gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(a_Position);
+                
+                if (fillMode) {
+                    gl.drawArrays(gl.TRIANGLE_FAN, 0, this.segments + 1);
+                } else {
+                    gl.drawArrays(gl.LINE_LOOP, 0, this.segments + 1);
+                }
+            }
+        }
+
+        function main() {
+            setupWebGL();
+            connectVariablesToGLSL();
+            setupEventListeners();
+            
+            gl.clearColor(0.9, 0.9, 0.95, 1.0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+        }
+
+        function setupWebGL() {
+            canvas = document.getElementById('webgl');
+            gl = canvas.getContext("webgl", { preserveDrawingBuffer: true });
+            if (!gl) {
+                console.log('Failed to get the rendering context for WebGL');
+                return;
+            }
+        }
+
+        function connectVariablesToGLSL() {
+            if (!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
+                console.log('Failed to initialize shaders.');
+                return;
+            }
+
+            a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+            u_FragColor = gl.getUniformLocation(gl.program, 'u_FragColor');
+            u_Size = gl.getUniformLocation(gl.program, 'u_Size');
+            
+            if (a_Position < 0 || !u_FragColor || !u_Size) {
+                console.log('Failed to get storage locations');
+                return;
+            }
+        }
+
+        function setupEventListeners() {
+            // Mouse events
+            canvas.onmousedown = handleClick;
+            canvas.onmousemove = handleMouseMove;
+            
+            // Color sliders
+            document.getElementById('redSlider').addEventListener('input', updateColor);
+            document.getElementById('greenSlider').addEventListener('input', updateColor);
+            document.getElementById('blueSlider').addEventListener('input', updateColor);
+            
+            // Size slider
+            document.getElementById('sizeSlider').addEventListener('input', function(e) {
+                currentSize = parseFloat(e.target.value);
+                document.getElementById('sizeValue').textContent = currentSize;
+            });
+            
+            // Segments slider
+            document.getElementById('segmentsSlider').addEventListener('input', function(e) {
+                currentSegments = parseInt(e.target.value);
+                document.getElementById('segmentsValue').textContent = currentSegments;
+            });
+            
+            // Shape buttons
+            document.getElementById('pointBtn').onclick = () => setShape('point');
+            document.getElementById('triangleBtn').onclick = () => setShape('triangle');
+            document.getElementById('circleBtn').onclick = () => setShape('circle');
+            
+            // Clear button
+            document.getElementById('clearBtn').onclick = clearCanvas;
+            
+            // Draw picture button
+            document.getElementById('drawPictureBtn').onclick = drawPicture;
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'z' || e.key === 'Z') {
+                    undoLastShape();
+                } else if (e.key === 'f' || e.key === 'F') {
+                    fillMode = !fillMode;
+                    renderAllShapes();
+                }
+            });
+        }
+
+        function updateColor() {
+            var r = parseInt(document.getElementById('redSlider').value);
+            var g = parseInt(document.getElementById('greenSlider').value);
+            var b = parseInt(document.getElementById('blueSlider').value);
+            
+            document.getElementById('redValue').textContent = r;
+            document.getElementById('greenValue').textContent = g;
+            document.getElementById('blueValue').textContent = b;
+            
+            currentColor = [r/255, g/255, b/255, 1.0];
+        }
+
+        function setShape(shape) {
+            currentShape = shape;
+            tempTrianglePoints = [];
+            
+            document.querySelectorAll('.shape-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(shape + 'Btn').classList.add('active');
+        }
+
+        function handleClick(ev) {
+            var [x, y] = getCanvasCoordinates(ev);
+            
+            // Eraser mode
+            if (ev.ctrlKey || ev.metaKey) {
+                eraseNearby(x, y);
+                return;
+            }
+            
+            // Rainbow mode
+            var color = currentColor;
+            if (ev.shiftKey) {
+                color = getRainbowColor();
+            }
+            
+            if (currentShape === 'point') {
+                shapesList.push(new Point(x, y, color, currentSize));
+            } else if (currentShape === 'circle') {
+                var radius = currentSize / 100;
+                shapesList.push(new Circle(x, y, radius, color, currentSegments));
+            } else if (currentShape === 'triangle') {
+                tempTrianglePoints.push(x, y);
+                if (tempTrianglePoints.length === 6) {
+                    shapesList.push(new Triangle(
+                        tempTrianglePoints[0], tempTrianglePoints[1],
+                        tempTrianglePoints[2], tempTrianglePoints[3],
+                        tempTrianglePoints[4], tempTrianglePoints[5],
+                        color
+                    ));
+                    tempTrianglePoints = [];
+                }
+            }
+            
+            renderAllShapes();
+        }
+
+        function handleMouseMove(ev) {
+            if (ev.buttons === 1 && currentShape === 'point') {
+                var [x, y] = getCanvasCoordinates(ev);
+                
+                var color = currentColor;
+                if (ev.shiftKey) {
+                    color = getRainbowColor();
+                }
+                
+                shapesList.push(new Point(x, y, color, currentSize));
+                renderAllShapes();
+            }
+        }
+
+        function getCanvasCoordinates(ev) {
+            var rect = ev.target.getBoundingClientRect();
+            var x = ((ev.clientX - rect.left) - canvas.width/2) / (canvas.width/2);
+            var y = (canvas.height/2 - (ev.clientY - rect.top)) / (canvas.height/2);
+            return [x, y];
+        }
+
+        function renderAllShapes() {
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            
+            for (var i = 0; i < shapesList.length; i++) {
+                shapesList[i].render();
+            }
+        }
+
+        function clearCanvas() {
+            shapesList = [];
+            tempTrianglePoints = [];
+            renderAllShapes();
+        }
+
+        function undoLastShape() {
+            if (shapesList.length > 0) {
+                shapesList.pop();
+                renderAllShapes();
+            }
+        }
+
+        function eraseNearby(x, y) {
+            var eraseRadius = 0.1;
+            shapesList = shapesList.filter(shape => {
+                var dx = shape.x - x;
+                var dy = shape.y - y;
+                var distance = Math.sqrt(dx*dx + dy*dy);
+                return distance > eraseRadius;
+            });
+            renderAllShapes();
+        }
+
+        function getRainbowColor() {
+            rainbowHue = (rainbowHue + 5) % 360;
+            var h = rainbowHue / 360;
+            var s = 1;
+            var v = 1;
+            
+            var c = v * s;
+            var x = c * (1 - Math.abs((h * 6) % 2 - 1));
+            var m = v - c;
+            
+            var r, g, b;
+            if (h < 1/6) { r = c; g = x; b = 0; }
+            else if (h < 2/6) { r = x; g = c; b = 0; }
+            else if (h < 3/6) { r = 0; g = c; b = x; }
+            else if (h < 4/6) { r = 0; g = x; b = c; }
+            else if (h < 5/6) { r = x; g = 0; b = c; }
+            else { r = c; g = 0; b = x; }
+            
+            return [r + m, g + m, b + m, 1.0];
+        }
+
+        function drawPicture() {
+            // A simple house with a tree
+            var pictureShapes = [
+                // House base (brown)
+                new Triangle(-0.3, -0.2, 0.3, -0.2, 0.3, 0.3, [0.6, 0.4, 0.2, 1.0]),
+                new Triangle(-0.3, -0.2, -0.3, 0.3, 0.3, 0.3, [0.6, 0.4, 0.2, 1.0]),
+                
+                // Roof (red)
+                new Triangle(-0.4, 0.3, 0, 0.6, 0.4, 0.3, [0.8, 0.2, 0.2, 1.0]),
+                
+                // Door (dark brown)
+                new Triangle(-0.05, -0.2, 0.05, -0.2, 0.05, 0.05, [0.3, 0.2, 0.1, 1.0]),
+                new Triangle(-0.05, -0.2, -0.05, 0.05, 0.05, 0.05, [0.3, 0.2, 0.1, 1.0]),
+                
+                // Windows (light blue)
+                new Triangle(-0.2, 0.05, -0.1, 0.05, -0.1, 0.15, [0.6, 0.8, 1.0, 1.0]),
+                new Triangle(-0.2, 0.05, -0.2, 0.15, -0.1, 0.15, [0.6, 0.8, 1.0, 1.0]),
+                new Triangle(0.1, 0.05, 0.2, 0.05, 0.2, 0.15, [0.6, 0.8, 1.0, 1.0]),
+                new Triangle(0.1, 0.05, 0.1, 0.15, 0.2, 0.15, [0.6, 0.8, 1.0, 1.0]),
+                
+                // Tree trunk (brown)
+                new Triangle(0.5, -0.2, 0.6, -0.2, 0.6, 0.1, [0.5, 0.3, 0.1, 1.0]),
+                new Triangle(0.5, -0.2, 0.5, 0.1, 0.6, 0.1, [0.5, 0.3, 0.1, 1.0]),
+                
+                // Tree foliage (green triangles)
+                new Triangle(0.4, 0.1, 0.7, 0.1, 0.55, 0.3, [0.2, 0.6, 0.2, 1.0]),
+                new Triangle(0.42, 0.2, 0.68, 0.2, 0.55, 0.4, [0.2, 0.7, 0.2, 1.0]),
+                new Triangle(0.45, 0.3, 0.65, 0.3, 0.55, 0.5, [0.1, 0.5, 0.1, 1.0]),
+                
+                // Sun (yellow)
+                new Triangle(-0.8, 0.5, -0.7, 0.5, -0.75, 0.6, [1.0, 0.9, 0.0, 1.0]),
+                new Triangle(-0.8, 0.6, -0.7, 0.6, -0.75, 0.55, [1.0, 0.9, 0.0, 1.0]),
+                new Triangle(-0.75, 0.5, -0.8, 0.55, -0.7, 0.55, [1.0, 0.9, 0.0, 1.0]),
+                new Triangle(-0.75, 0.6, -0.8, 0.55, -0.7, 0.55, [1.0, 0.9, 0.0, 1.0]),
+                
+                // Ground (green)
+                new Triangle(-1.0, -0.2, 1.0, -0.2, 1.0, -1.0, [0.3, 0.6, 0.3, 1.0]),
+                new Triangle(-1.0, -0.2, -1.0, -1.0, 1.0, -1.0, [0.3, 0.6, 0.3, 1.0])
+            ];
+            
+            shapesList = shapesList.concat(pictureShapes);
+            renderAllShapes();
+        }
+
+        // Simple shader initialization (you need cuon-utils.js from the book)
+        function initShaders(gl, vshader, fshader) {
+            var program = createProgram(gl, vshader, fshader);
+            if (!program) {
+                console.log('Failed to create program');
+                return false;
+            }
+            gl.useProgram(program);
+            gl.program = program;
+            return true;
+        }
+
+        function createProgram(gl, vshader, fshader) {
+            var vertexShader = loadShader(gl, gl.VERTEX_SHADER, vshader);
+            var fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fshader);
+            if (!vertexShader || !fragmentShader) {
+                return null;
+            }
+
+            var program = gl.createProgram();
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+            gl.linkProgram(program);
+
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.log('Failed to link program: ' + gl.getProgramInfoLog(program));
+                gl.deleteProgram(program);
+                gl.deleteShader(fragmentShader);
+                gl.deleteShader(vertexShader);
+                return null;
+            }
+            return program;
+        }
+
+        function loadShader(gl, type, source) {
+            var shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.log('Failed to compile shader: ' + gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        }
+
+        // Start the application
+        window.onload = main;
+    </script>
+</body>
+</html>

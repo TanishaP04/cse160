@@ -26,7 +26,7 @@ function main() {
         return;
     }
     //initialize shaders
-    if (!initShaders(globalThis, VSHADER_SOURCE, FSHADER_SOURCE)){
+    if (!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)){
         console.log('Failed to initialize shaders.');
         return;
     }
@@ -46,7 +46,7 @@ function main() {
     }
     //register function (event handler) to be called on a mouse press
     canvas.onmousedown = function(ev){
-        cancelIdleCallback(ev, gl, canvas, a_Position, u_FragColor)
+        click(ev, gl, canvas, a_Position, u_FragColor)
     };
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
@@ -75,14 +75,14 @@ function click(ev,gl,canvas, a_Position, u_FragColor){
     }
 
     //clear canvas
-    gl.clear(g1.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT);
 
     var len = g_points.length;
     for(var i = 0; i < len; i++){
         var xy = g_points[i];
         var rgba = g_colors[i];
 
-        gl.uniform4f(u_FragColor, rgba[0], rgba[1], rgba[2], rbga[3]);
+        gl.uniform4f(u_FragColor, rgba[0], rgba[1], rgba[2], rgba[3]);
         // Pass the position of a point to a_Position variable
     gl.vertexAttrib3f(a_Position, xy[0], xy[1], 0.0);
     // Pass the color of a point to u_FragColor variable
