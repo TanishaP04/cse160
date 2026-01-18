@@ -146,10 +146,8 @@
         <div class="awesomeness">
             <h3>✨ Awesomeness Features:</h3>
             <ul>
-                <li><strong>Rainbow Mode:</strong> Hold SHIFT while drawing for automatic rainbow colors!</li>
                 <li><strong>Eraser:</strong> Hold CTRL/CMD to erase shapes near your cursor</li>
                 <li><strong>Undo:</strong> Press 'Z' to undo the last shape</li>
-                <li><strong>Fill Mode:</strong> Press 'F' to toggle fill/outline mode for triangles and circles</li>
             </ul>
         </div>
     </div>
@@ -184,8 +182,6 @@
         var currentShape = 'point';
         var currentSegments = 12;
         var tempTrianglePoints = [];
-        var fillMode = true;
-        var rainbowHue = 0;
 
         // Shape classes
         class Point {
@@ -221,7 +217,7 @@
                 gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
                 gl.enableVertexAttribArray(a_Position);
                 
-                gl.drawArrays(fillMode ? gl.TRIANGLES : gl.LINE_LOOP, 0, 3);
+                gl.drawArrays(gl.TRIANGLES, 0, 3);
             }
         }
 
@@ -252,11 +248,7 @@
                 gl.vertexAttribPointer(a_Position, 2, gl.FLOAT, false, 0, 0);
                 gl.enableVertexAttribArray(a_Position);
                 
-                if (fillMode) {
-                    gl.drawArrays(gl.TRIANGLE_FAN, 0, this.segments + 1);
-                } else {
-                    gl.drawArrays(gl.LINE_LOOP, 0, this.segments + 1);
-                }
+                gl.drawArrays(gl.TRIANGLE_FAN, 0, this.segments + 1);
             }
         }
 
@@ -331,9 +323,6 @@
             document.addEventListener('keydown', function(e) {
                 if (e.key === 'z' || e.key === 'Z') {
                     undoLastShape();
-                } else if (e.key === 'f' || e.key === 'F') {
-                    fillMode = !fillMode;
-                    renderAllShapes();
                 }
             });
         }
@@ -367,17 +356,11 @@
                 return;
             }
             
-            // Rainbow mode
-            var color = currentColor;
-            if (ev.shiftKey) {
-                color = getRainbowColor();
-            }
-            
             if (currentShape === 'point') {
-                shapesList.push(new Point(x, y, color, currentSize));
+                shapesList.push(new Point(x, y, currentColor, currentSize));
             } else if (currentShape === 'circle') {
                 var radius = currentSize / 100;
-                shapesList.push(new Circle(x, y, radius, color, currentSegments));
+                shapesList.push(new Circle(x, y, radius, currentColor, currentSegments));
             } else if (currentShape === 'triangle') {
                 tempTrianglePoints.push(x, y);
                 if (tempTrianglePoints.length === 6) {
@@ -385,7 +368,7 @@
                         tempTrianglePoints[0], tempTrianglePoints[1],
                         tempTrianglePoints[2], tempTrianglePoints[3],
                         tempTrianglePoints[4], tempTrianglePoints[5],
-                        color
+                        currentColor
                     ));
                     tempTrianglePoints = [];
                 }
@@ -397,13 +380,7 @@
         function handleMouseMove(ev) {
             if (ev.buttons === 1 && currentShape === 'point') {
                 var [x, y] = getCanvasCoordinates(ev);
-                
-                var color = currentColor;
-                if (ev.shiftKey) {
-                    color = getRainbowColor();
-                }
-                
-                shapesList.push(new Point(x, y, color, currentSize));
+                shapesList.push(new Point(x, y, currentColor, currentSize));
                 renderAllShapes();
             }
         }
@@ -445,27 +422,6 @@
                 return distance > eraseRadius;
             });
             renderAllShapes();
-        }
-
-        function getRainbowColor() {
-            rainbowHue = (rainbowHue + 5) % 360;
-            var h = rainbowHue / 360;
-            var s = 1;
-            var v = 1;
-            
-            var c = v * s;
-            var x = c * (1 - Math.abs((h * 6) % 2 - 1));
-            var m = v - c;
-            
-            var r, g, b;
-            if (h < 1/6) { r = c; g = x; b = 0; }
-            else if (h < 2/6) { r = x; g = c; b = 0; }
-            else if (h < 3/6) { r = 0; g = c; b = x; }
-            else if (h < 4/6) { r = 0; g = x; b = c; }
-            else if (h < 5/6) { r = x; g = 0; b = c; }
-            else { r = c; g = 0; b = x; }
-            
-            return [r + m, g + m, b + m, 1.0];
         }
 
         function drawPicture() {
@@ -512,7 +468,7 @@
             renderAllShapes();
         }
 
-        // Simple shader initialization (you need cuon-utils.js from the book)
+        // Shader initialization functions
         function initShaders(gl, vshader, fshader) {
             var program = createProgram(gl, vshader, fshader);
             if (!program) {
