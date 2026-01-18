@@ -24,7 +24,7 @@ function main() {
     if (!gl) {
         console.log('Failed to get the rendering context for WebGL');
         return;
-
+    }
     //initialize shaders
     if (!initShaders(globalThis, VSHADER_SOURCE, FSHADER_SOURCE)){
         console.log('Failed to initialize shaders.');
@@ -86,7 +86,7 @@ function click(ev,gl,canvas, a_Position, u_FragColor){
         // Pass the position of a point to a_Position variable
     gl.vertexAttrib3f(a_Position, xy[0], xy[1], 0.0);
     // Pass the color of a point to u_FragColor variable
-    gl.uniform4f(u_FragColor, rgba[0],rgba[1],rgba[2],rgba[3]); <-(3)
+    gl.uniform4f(u_FragColor, rgba[0],rgba[1],rgba[2],rgba[3]);
     // Draw a point
     gl.drawArrays(gl.POINTS, 0, 1);
     }
