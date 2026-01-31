@@ -58,6 +58,8 @@
             color: #333;
         }
     </style>
+    <script src="cuon-matrix.js"></script>
+    <script src="cuon-utils.js"></script>
 </head>
 <body>
     <h1> Blocky 3D Elephant </h1>
@@ -403,49 +405,49 @@
 
             //head
             m = new Matrix4();
-            m.setTranslate(0.6, 0.4, 0);
+            m.setTranslate(0.5, 0.4, 0);
             m.scale(0.4, 0.4, 0.4);
             drawCube(m, [0.65, 0.65, 0.65, 1.0]);
 
             //left ear
             m = new Matrix4();
-            m.setTranslate(0.6, 0.5, 0.35);
+            m.setTranslate(0.5, 0.5, 0.35);
             m.rotate(10, 0, 1, 0);
             m.scale(0.05, 0.3, 0.25);
             drawCube(m, [0.6, 0.6, 0.6, 1.0]);
 
             //right ear
             m = new Matrix4();
-            m.setTranslate(0.6, 0.5, -0.35);
+            m.setTranslate(0.5, 0.5, -0.35);
             m.rotate(-10, 0, 1, 0);
             m.scale(0.05, 0.3, 0.25);
             drawCube(m, [0.6, 0.6, 0.6, 1.0]);
 
             //left eye
             m = new Matrix4();
-            m.setTranslate(0.82, 0.5, 0.15);
+            m.setTranslate(0.72, 0.5, 0.15);
             m.scale(0.05, 0.05, 0.05);
             drawCube(m, [0.0, 0.0, 0.0, 1.0]);
 
             //right eye
             m = new Matrix4();
-            m.setTranslate(0.82, 0.5, -0.15);
+            m.setTranslate(0.72, 0.5, -0.15);
             m.scale(0.05, 0.05, 0.05);
             drawCube(m, [0.0, 0.0, 0.0, 1.0]);
 
             //trunk
             // Trunk base
             m = new Matrix4();
-            m.setTranslate(0.85, 0.3, 0);
+            m.setTranslate(0.75, 0.3, 0);
             m.rotate(g_trunkBase, 0, 0, 1);
-            m.translate(0.15, 0, 0);
+            m.translate(0.12, 0, 0);
             const trunkBaseMatrix = new Matrix4(m);
-            m.scale(0.15, 0.08, 0.08);
+            m.scale(0.13, 0.08, 0.08);
             drawCylinder(m, [0.65, 0.65, 0.65, 1.0]);
 
             // Trunk middle
             m = new Matrix4(trunkBaseMatrix);
-            m.translate(0.15, 0, 0);
+            m.translate(0.12, 0, 0);
             m.rotate(g_trunkMiddle, 0, 0, 1);
             m.translate(0.15, 0, 0);
             const trunkMiddleMatrix = new Matrix4(m);
@@ -454,7 +456,7 @@
 
             // Trunk tip
             m = new Matrix4(trunkMiddleMatrix);
-            m.translate(0.15, 0, 0);
+            m.translate(0.12, 0, 0);
             m.rotate(g_trunkTip, 0, 0, 1);
             m.translate(0.1, 0, 0);
             m.scale(0.1, 0.06, 0.06);
@@ -463,33 +465,33 @@
             //front left leg
             // Upper leg
             m = new Matrix4();
-            m.setTranslate(0.3, 0.05, 0.2);
+            m.setTranslate(0.25, 0.05, 0.2);
             m.rotate(g_frontLeftLeg, 0, 0, 1);
-            m.translate(0, -0.2, 0);
+            m.translate(0, -0.18, 0);
             const upperLegMatrix = new Matrix4(m);
             m.scale(0.12, 0.2, 0.12);
             drawCube(m, [0.6, 0.6, 0.6, 1.0]);
 
             // Lower leg
             m = new Matrix4(upperLegMatrix);
-            m.translate(0, -0.2, 0);
+            m.translate(0, -0.18, 0);
             m.rotate(g_frontLeftKnee, 0, 0, 1);
-            m.translate(0, -0.15, 0);
+            m.translate(0, -0.13, 0);
             const lowerLegMatrix = new Matrix4(m);
             m.scale(0.1, 0.15, 0.1);
             drawCube(m, [0.55, 0.55, 0.55, 1.0]);
 
             // Foot
             m = new Matrix4(lowerLegMatrix);
-            m.translate(0, -0.15, 0);
+            m.translate(0, -0.12, 0);
             m.rotate(g_frontLeftFoot, 0, 0, 1);
-            m.translate(0, -0.05, 0);
+            m.translate(0, -0.03, 0);
             m.scale(0.12, 0.05, 0.15);
             drawCube(m, [0.5, 0.5, 0.5, 1.0]);
 
             //front right leg
             m = new Matrix4();
-            m.setTranslate(0.3, 0.05, -0.2);
+            m.setTranslate(0.2, 0.05, -0.2);
             m.rotate(-g_frontLeftLeg, 0, 0, 1);
             m.translate(0, -0.2, 0);
             m.scale(0.12, 0.2, 0.12);
@@ -506,16 +508,16 @@
 
             //back left leg
             m = new Matrix4();
-            m.setTranslate(-0.3, 0.05, 0.2);
+            m.setTranslate(-0.25, 0.05, 0.2);
             m.rotate(-g_frontLeftLeg, 0, 0, 1);
-            m.translate(0, -0.2, 0);
+            m.translate(0, -0.18, 0);
             m.scale(0.12, 0.2, 0.12);
             drawCube(m, [0.6, 0.6, 0.6, 1.0]);
 
             m = new Matrix4();
-            m.setTranslate(-0.3, 0.05, 0.2);
+            m.setTranslate(-0.25, 0.05, 0.2);
             m.rotate(-g_frontLeftLeg, 0, 0, 1);
-            m.translate(0, -0.4, 0);
+            m.translate(0, -0.35, 0);
             m.rotate(-g_frontLeftKnee, 0, 0, 1);
             m.translate(0, -0.15, 0);
             m.scale(0.1, 0.15, 0.1);
@@ -523,16 +525,16 @@
 
             //back right leg
             m = new Matrix4();
-            m.setTranslate(-0.3, 0.05, -0.2);
+            m.setTranslate(-0.25, 0.05, -0.2);
             m.rotate(g_frontLeftLeg, 0, 0, 1);
-            m.translate(0, -0.2, 0);
+            m.translate(0, -0.18, 0);
             m.scale(0.12, 0.2, 0.12);
             drawCube(m, [0.6, 0.6, 0.6, 1.0]);
 
             m = new Matrix4();
-            m.setTranslate(-0.3, 0.05, -0.2);
+            m.setTranslate(-0.25, 0.05, -0.2);
             m.rotate(g_frontLeftLeg, 0, 0, 1);
-            m.translate(0, -0.4, 0);
+            m.translate(0, -0.35, 0);
             m.rotate(-g_frontLeftKnee, 0, 0, 1);
             m.translate(0, -0.15, 0);
             m.scale(0.1, 0.15, 0.1);
@@ -540,48 +542,48 @@
 
             //tail
             m = new Matrix4();
-            m.setTranslate(-0.8, 0.3, 0);
+            m.setTranslate(-0.7, 0.3, 0);
             m.rotate(g_tail, 0, 1, 0);
             m.rotate(30, 0, 0, 1);
-            m.translate(0, -0.15, 0);
+            m.translate(0, -0.12, 0);
             m.scale(0.05, 0.15, 0.05);
             drawCylinder(m, [0.4, 0.3, 0.2, 1.0]);
 
             //left tusk
             m = new Matrix4();
-            m.setTranslate(0.85, 0.25, 0.1);
+            m.setTranslate(0.75, 0.25, 0.1);
             m.rotate(-20, 0, 0, 1);
-            m.translate(0.1, 0, 0);
+            m.translate(0.08, 0, 0);
             m.scale(0.1, 0.03, 0.03);
             drawCylinder(m, [1.0, 1.0, 0.9, 1.0]);
 
             //right tusk
             m = new Matrix4();
-            m.setTranslate(0.85, 0.25, -0.1);
+            m.setTranslate(0.75, 0.25, -0.1);
             m.rotate(-20, 0, 0, 1);
-            m.translate(0.1, 0, 0);
+            m.translate(0.08, 0, 0);
             m.scale(0.1, 0.03, 0.03);
             drawCylinder(m, [1.0, 1.0, 0.9, 1.0]);
         }
 
         function drawCube(modelMatrix, color) {
             const vertices = new Float32Array([
-                // Front face
+                //Front face
                 -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5,
                 -0.5, -0.5,  0.5,  0.5,  0.5,  0.5, -0.5,  0.5,  0.5,
-                // Back face
+                //Back face
                 -0.5, -0.5, -0.5, -0.5,  0.5, -0.5,  0.5,  0.5, -0.5,
                 -0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5, -0.5, -0.5,
-                // Top face
+                //Top face
                 -0.5,  0.5, -0.5, -0.5,  0.5,  0.5,  0.5,  0.5,  0.5,
                 -0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5,  0.5, -0.5,
                 // Bottom face
                 -0.5, -0.5, -0.5,  0.5, -0.5, -0.5,  0.5, -0.5,  0.5,
                 -0.5, -0.5, -0.5,  0.5, -0.5,  0.5, -0.5, -0.5,  0.5,
-                // Right face
+                //Right face
                  0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,
                  0.5, -0.5, -0.5,  0.5,  0.5,  0.5,  0.5, -0.5,  0.5,
-                // Left face
+                //Left face
                 -0.5, -0.5, -0.5, -0.5, -0.5,  0.5, -0.5,  0.5,  0.5,
                 -0.5, -0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5, -0.5
             ]);
@@ -678,69 +680,7 @@
 
         //Matrix4 implement from cuon-matrix.js!!
 
-        function initShaders(gl, vshader, fshader) {
-            const program = createProgram(gl, vshader, fshader);
-            if (!program) {
-                console.log('Failed to create program');
-                return false;
-            }
-
-            gl.useProgram(program);
-            gl.program = program;
-
-            return true;
-        }
-
-        function createProgram(gl, vshader, fshader) {
-            const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vshader);
-            const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fshader);
-            if (!vertexShader || !fragmentShader) {
-                return null;
-            }
-
-            const program = gl.createProgram();
-            if (!program) {
-                return null;
-            }
-
-            gl.attachShader(program, vertexShader);
-            gl.attachShader(program, fragmentShader);
-
-            gl.linkProgram(program);
-
-            const linked = gl.getProgramParameter(program, gl.LINK_STATUS);
-            if (!linked) {
-                const error = gl.getProgramInfoLog(program);
-                console.log('Failed to link program: ' + error);
-                gl.deleteProgram(program);
-                gl.deleteShader(fragmentShader);
-                gl.deleteShader(vertexShader);
-                return null;
-            }
-            return program;
-        }
-
-        function loadShader(gl, type, source) {
-            const shader = gl.createShader(type);
-            if (shader == null) {
-                console.log('unable to create shader');
-                return null;
-            }
-
-            gl.shaderSource(shader, source);
-
-            gl.compileShader(shader);
-
-            const compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
-            if (!compiled) {
-                const error = gl.getShaderInfoLog(shader);
-                console.log('Failed to compile shader: ' + error);
-                gl.deleteShader(shader);
-                return null;
-            }
-
-            return shader;
-        }
+        
 
         // Start the program
         window.onload = main;
