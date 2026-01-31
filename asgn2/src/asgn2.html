@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D Animated Elephant</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            border: 2px solid #333;
+            display: block;
+            margin: 20px auto;
+            background-color: #ba95e2;
+        }
+        .controls {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .control-group {
+            margin: 15px 0;
+        }
+        label {
+            display: inline-block;
+            width: 200px;
+            font-weight: bold;
+        }
+        input[type="range"] {
+            width: 300px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        button:hover {
+            background-color: #21c7ff;
+        }
+        #fps {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <h1> Blocky 3D Elephant </h1>
+    
+    <canvas id="webgl" width="800" height="600"></canvas>
+    
+    <div class="controls">
+        <div id="fps">FPS: 0</div>
+        
+        <div class="control-group">
+            <label>Rotation:</label>
+            <input type="range" id="Rotation" min="0" max="360" value="30">
+            <span id="RotationValue">30°</span>
+        </div>
+        
+        <div class="control-group">
+            <label>Front Left Leg:</label>
+            <input type="range" id="frontLeftLeg" min="-45" max="45" value="0">
+            <span id="frontLeftLegValue">0°</span>
+        </div>
+        
+        <div class="control-group">
+            <label>Front Left Knee:</label>
+            <input type="range" id="frontLeftKnee" min="-90" max="0" value="-20">
+            <span id="frontLeftKneeValue">-20°</span>
+        </div>
+        
+        <div class="control-group">
+            <label>Front Left Foot:</label>
+            <input type="range" id="frontLeftFoot" min="-30" max="30" value="0">
+            <span id="frontLeftFootValue">0°</span>
+        </div>
+        
+        <div class="control-group">
+            <label>Trunk Base:</label>
+            <input type="range" id="trunkBase" min="-45" max="45" value="10">
+            <span id="trunkBaseValue">10°</span>
+        </div>
+        
+        <div class="control-group">
+            <label>Trunk middle:</label>
+            <input type="range" id="trunkMiddle" min="-45" max="45" value="15">
+            <span id="trunkMiddleValue">15°</span>
+        </div>
+        
+        <div class="control-group">
+            <label>Trunk Tip:</label>
+            <input type="range" id="trunkTip" min="-45" max="45" value="10">
+            <span id="trunkTipValue">10°</span>
+        </div>
+        
+        <div class="control-group">
+            <label>Tail:</label>
+            <input type="range" id="tail" min="-45" max="45" value="0">
+            <span id="tailValue">0°</span>
+        </div>
+        
+        <div class="control-group">
+            <button id="animateBtn">Start Animation</button>
+            <button id="resetBtn">Reset</button>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 10px; background-color: #ffffcc; border-radius: 4px;">
+            <strong>Controls:</strong><br>
+            • Click and drag to rotate the elephant<br>
+            • Use sliders to control individual joints<br>
+            • Animation shows elephant in motion
+        </div>
+    </div>
+
+    <script>
+        // Vertex shader
+        const VSHADER_SOURCE = `
+            attribute vec4 a_Position;
+            attribute vec4 a_Color;
+            uniform mat4 u_Rotation;
+            uniform mat4 u_ModelMatrix;
+            varying vec4 v_Color;
+            void main() {
+                gl_Position = u_Rotation * u_ModelMatrix * a_Position;
+                v_Color = a_Color;
+            }
+        `;
+
+        // Fragment shader
+        const FSHADER_SOURCE = `
+            precision mediump float;
+            varying vec4 v_Color;
+            void main() {
+                gl_FragColor = v_Color;
+            }
+        `;
+
+        // Global variables
+        let gl;
+        let canvas;
+        let g_Rotation = 30;
+        let g_frontLeftLeg = 0;
+        let g_frontLeftKnee = -20;
+        let g_frontLeftFoot = 0;
+        let g_trunkBase = 10;
+        let g_trunkMiddle = 15;
+        let g_trunkTip = 10;
+        let g_tail = 0;
+        let g_time = 0;
+        let g_animating = false;
+        let g_mouseRotationX = 0;
+        let g_mouseRotationY = 0;
+        let g_isDragging = false;
+        let g_lastMouseX = 0;
+        let g_lastMouseY = 0;
+        let g_pokeAnimation = false;
+        let g_pokeTime = 0;
+
+        // Performance monitoring
+        let lastFrameTime = Date.now();
+        let frameCount = 0;
+        let fps = 0;
+
+        // Buffers
+        let cubeVertexBuffer = null;
+        let cubeColorBuffer = null;
+        let cylinderVertexBuffer = null;
+        let cylinderColorBuffer = null;
+
+        function main() {
+            canvas = document.getElementById('webgl');
+            gl = canvas.getContext('webgl');
+            
+            if (!gl) {
+                console.log('Failed to get WebGL context');
+                return;
+            }
+
+            // Initialize shaders
+            if (!initShaders(gl, VSHADER_SOURCE, FSHADER_SOURCE)) {
+                console.log('Failed to initialize shaders');
+                return;
+            }
+
+            // Enable depth test
+            gl.enable(gl.DEPTH_TEST);
+            
+            // Set clear color
+            gl.clearColor(0.53, 0.81, 0.92, 1.0);
+
+            // Initialize buffers
+            initBuffers();
+
+            // Set up UI controls
+            setupControls();
+
+            // Set up mouse controls
+            setupMouseControls();
+
+            // Start rendering
+            tick();
+        }
+
+        function initBuffers() {
+            // Create cube buffers once
+            cubeVertexBuffer = gl.createBuffer();
+            cubeColorBuffer = gl.createBuffer();
+            
+            // Create cylinder buffers once
+            cylinderVertexBuffer = gl.createBuffer();
+            cylinderColorBuffer = gl.createBuffer();
+        }
+
+        function setupControls() {
+            // Global rotation
+            const RotationSlider = document.getElementById('Rotation');
+            RotationSlider.addEventListener('input', function() {
+                g_Rotation = this.value;
+                document.getElementById('RotationValue').textContent = this.value + '°';
+            });
+
+            // Front left leg
+            const frontLeftLegSlider = document.getElementById('frontLeftLeg');
+            frontLeftLegSlider.addEventListener('input', function() {
+                g_frontLeftLeg = this.value;
+                document.getElementById('frontLeftLegValue').textContent = this.value + '°';
+            });
+
+            // Front left knee
+            const frontLeftKneeSlider = document.getElementById('frontLeftKnee');
+            frontLeftKneeSlider.addEventListener('input', function() {
+                g_frontLeftKnee = this.value;
+                document.getElementById('frontLeftKneeValue').textContent = this.value + '°';
+            });
+
+            // Front left foot
+            const frontLeftFootSlider = document.getElementById('frontLeftFoot');
+            frontLeftFootSlider.addEventListener('input', function() {
+                g_frontLeftFoot = this.value;
+                document.getElementById('frontLeftFootValue').textContent = this.value + '°';
+            });
+
+            // Trunk base
+            const trunkBaseSlider = document.getElementById('trunkBase');
+            trunkBaseSlider.addEventListener('input', function() {
+                g_trunkBase = this.value;
+                document.getElementById('trunkBaseValue').textContent = this.value + '°';
+            });
+
+            // Trunk mid
+            const trunkMiddleSlider = document.getElementById('trunkMiddle');
+            trunkMiddleSlider.addEventListener('input', function() {
+                g_trunkMiddle = this.value;
+                document.getElementById('trunkMiddleValue').textContent = this.value + '°';
+            });
+
+            // Trunk tip
+            const trunkTipSlider = document.getElementById('trunkTip');
+            trunkTipSlider.addEventListener('input', function() {
+                g_trunkTip = this.value;
+                document.getElementById('trunkTipValue').textContent = this.value + '°';
+            });
+
+            // Tail
+            const tailSlider = document.getElementById('tail');
+            tailSlider.addEventListener('input', function() {
+                g_tail = this.value;
+                document.getElementById('tailValue').textContent = this.value + '°';
+            });
+
+            // Animation button
+            document.getElementById('animateBtn').addEventListener('click', function() {
+                g_animating = !g_animating;
+                this.textContent = g_animating ? 'Stop Animation' : 'Start Animation';
+            });
+
+            // Reset button
+            document.getElementById('resetBtn').addEventListener('click', function() {
+                g_mouseRotationX = 0;
+                g_mouseRotationY = 0;
+                g_globalRotation = 30;
+                document.getElementById('globalRotation').value = 30;
+                document.getElementById('globalRotationValue').textContent = '30°';
+            });
+        }
+
+        function setupMouseControls() {
+            canvas.addEventListener('mousedown', function(ev) {
+                if (ev.shiftKey) {
+                    // Poke animation
+                    g_pokeAnimation = true;
+                    g_pokeTime = 0;
+                } else {
+                    g_isDragging = true;
+                    g_lastMouseX = ev.clientX;
+                    g_lastMouseY = ev.clientY;
+                }
+            });
+
+            canvas.addEventListener('mouseup', function() {
+                g_isDragging = false;
+            });
+
+            canvas.addEventListener('mousemove', function(ev) {
+                if (g_isDragging) {
+                    const deltaX = ev.clientX - g_lastMouseX;
+                    const deltaY = ev.clientY - g_lastMouseY;
+                    
+                    g_mouseRotationY += deltaX * 0.5;
+                    g_mouseRotationX += deltaY * 0.5;
+                    
+                    g_lastMouseX = ev.clientX;
+                    g_lastMouseY = ev.clientY;
+                }
+            });
+        }
+
+        function tick() {
+            g_time = Date.now() / 1000.0;
+            
+            updateAnimationAngles();
+            updatePerformance();
+            renderScene();
+            
+            requestAnimationFrame(tick);
+        }
+
+        function updateAnimationAngles() {
+            if (g_animating) {
+                const walkCycle = Math.sin(g_time * 2) * 30;
+                
+                g_frontLeftLeg = walkCycle;
+                g_frontLeftKnee = -20 + Math.abs(Math.sin(g_time * 2)) * 30;
+                
+                // Trunk swaying
+                g_trunkBase = 10 + Math.sin(g_time * 1.5) * 15;
+                g_trunkMiddle = 15 + Math.sin(g_time * 1.5 + 0.5) * 15;
+                g_trunkTip = 10 + Math.sin(g_time * 1.5 + 1) * 15;
+                
+                // Tail swaying
+                g_tail = Math.sin(g_time * 3) * 25;
+            }
+            
+            if (g_pokeAnimation) {
+                g_pokeTime += 0.05;
+                
+                g_trunkBase = -30 + Math.sin(g_pokeTime * 10) * 10;
+                g_trunkMiddle = -20 + Math.sin(g_pokeTime * 10) * 10;
+                g_trunkTip = -10 + Math.sin(g_pokeTime * 10) * 10;
+                
+                if (g_pokeTime > 1.5) {
+                    g_pokeAnimation = false;
+                    g_pokeTime = 0;
+                }
+            }
+        }
+
+        function updatePerformance() {
+            frameCount++;
+            const currentTime = Date.now();
+            
+            if (currentTime - lastFrameTime >= 1000) {
+                fps = frameCount;
+                frameCount = 0;
+                lastFrameTime = currentTime;
+                document.getElementById('fps').textContent = 'FPS: ' + fps;
+            }
+        }
+
+        function renderScene() {
+            gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+            // Set global rotation matrix
+            const globalMatrix = new Matrix4();
+            globalMatrix.setRotate(g_mouseRotationX, 1, 0, 0);
+            globalMatrix.rotate(g_mouseRotationY, 0, 1, 0);
+            globalMatrix.rotate(g_globalRotation, 0, 1, 0);
+            
+            const u_GlobalRotation = gl.getUniformLocation(gl.program, 'u_GlobalRotation');
+            gl.uniformMatrix4fv(u_GlobalRotation, false, globalMatrix.elements);
+
+            //elephant body
+            let m = new Matrix4();
+            m.setTranslate(0, 0.3, 0);
+            m.scale(0.8, 0.5, 0.5);
+            drawCube(m, [0.6, 0.6, 0.6, 1.0]);
+
+            //head
+            m = new Matrix4();
+            m.setTranslate(0.6, 0.4, 0);
+            m.scale(0.4, 0.4, 0.4);
+            drawCube(m, [0.65, 0.65, 0.65, 1.0]);
+
+            //left ear
+            m = new Matrix4();
+            m.setTranslate(0.6, 0.5, 0.35);
+            m.rotate(10, 0, 1, 0);
+            m.scale(0.05, 0.3, 0.25);
+            drawCube(m, [0.6, 0.6, 0.6, 1.0]);
+
+            //right ear
+            m = new Matrix4();
+            m.setTranslate(0.6, 0.5, -0.35);
+            m.rotate(-10, 0, 1, 0);
+            m.scale(0.05, 0.3, 0.25);
+            drawCube(m, [0.6, 0.6, 0.6, 1.0]);
+
+            //left eye
+            m = new Matrix4();
+            m.setTranslate(0.82, 0.5, 0.15);
+            m.scale(0.05, 0.05, 0.05);
+            drawCube(m, [0.0, 0.0, 0.0, 1.0]);
+
+            //right eye
+            m = new Matrix4();
+            m.setTranslate(0.82, 0.5, -0.15);
+            m.scale(0.05, 0.05, 0.05);
+            drawCube(m, [0.0, 0.0, 0.0, 1.0]);
+
+            //trunk
+            // Trunk base
+            m = new Matrix4();
+            m.setTranslate(0.85, 0.3, 0);
+            m.rotate(g_trunkBase, 0, 0, 1);
+            m.translate(0.15, 0, 0);
+            const trunkBaseMatrix = new Matrix4(m);
+            m.scale(0.15, 0.08, 0.08);
+            drawCylinder(m, [0.65, 0.65, 0.65, 1.0]);
+
+            // Trunk middle
+            m = new Matrix4(trunkBaseMatrix);
+            m.translate(0.15, 0, 0);
+            m.rotate(g_trunkMiddle, 0, 0, 1);
+            m.translate(0.15, 0, 0);
+            const trunkMiddleMatrix = new Matrix4(m);
+            m.scale(0.15, 0.07, 0.07);
+            drawCylinder(m, [0.65, 0.65, 0.65, 1.0]);
+
+            // Trunk tip
+            m = new Matrix4(trunkMiddleMatrix);
+            m.translate(0.15, 0, 0);
+            m.rotate(g_trunkTip, 0, 0, 1);
+            m.translate(0.1, 0, 0);
+            m.scale(0.1, 0.06, 0.06);
+            drawCylinder(m, [0.65, 0.65, 0.65, 1.0]);
+
+            //front left leg
+            // Upper leg
+            m = new Matrix4();
+            m.setTranslate(0.3, 0.05, 0.2);
+            m.rotate(g_frontLeftLeg, 0, 0, 1);
+            m.translate(0, -0.2, 0);
+            const upperLegMatrix = new Matrix4(m);
+            m.scale(0.12, 0.2, 0.12);
+            drawCube(m, [0.6, 0.6, 0.6, 1.0]);
+
+            // Lower leg
+            m = new Matrix4(upperLegMatrix);
+            m.translate(0, -0.2, 0);
+            m.rotate(g_frontLeftKnee, 0, 0, 1);
+            m.translate(0, -0.15, 0);
+            const lowerLegMatrix = new Matrix4(m);
+            m.scale(0.1, 0.15, 0.1);
+            drawCube(m, [0.55, 0.55, 0.55, 1.0]);
+
+            // Foot
+            m = new Matrix4(lowerLegMatrix);
+            m.translate(0, -0.15, 0);
+            m.rotate(g_frontLeftFoot, 0, 0, 1);
+            m.translate(0, -0.05, 0);
+            m.scale(0.12, 0.05, 0.15);
+            drawCube(m, [0.5, 0.5, 0.5, 1.0]);
+
+            //front right leg
+            m = new Matrix4();
+            m.setTranslate(0.3, 0.05, -0.2);
+            m.rotate(-g_frontLeftLeg, 0, 0, 1);
+            m.translate(0, -0.2, 0);
+            m.scale(0.12, 0.2, 0.12);
+            drawCube(m, [0.6, 0.6, 0.6, 1.0]);
+
+            m = new Matrix4();
+            m.setTranslate(0.3, 0.05, -0.2);
+            m.rotate(-g_frontLeftLeg, 0, 0, 1);
+            m.translate(0, -0.4, 0);
+            m.rotate(-g_frontLeftKnee, 0, 0, 1);
+            m.translate(0, -0.15, 0);
+            m.scale(0.1, 0.15, 0.1);
+            drawCube(m, [0.55, 0.55, 0.55, 1.0]);
+
+            //back left leg
+            m = new Matrix4();
+            m.setTranslate(-0.3, 0.05, 0.2);
+            m.rotate(-g_frontLeftLeg, 0, 0, 1);
+            m.translate(0, -0.2, 0);
+            m.scale(0.12, 0.2, 0.12);
+            drawCube(m, [0.6, 0.6, 0.6, 1.0]);
+
+            m = new Matrix4();
+            m.setTranslate(-0.3, 0.05, 0.2);
+            m.rotate(-g_frontLeftLeg, 0, 0, 1);
+            m.translate(0, -0.4, 0);
+            m.rotate(-g_frontLeftKnee, 0, 0, 1);
+            m.translate(0, -0.15, 0);
+            m.scale(0.1, 0.15, 0.1);
+            drawCube(m, [0.55, 0.55, 0.55, 1.0]);
+
+            //back right leg
+            m = new Matrix4();
+            m.setTranslate(-0.3, 0.05, -0.2);
+            m.rotate(g_frontLeftLeg, 0, 0, 1);
+            m.translate(0, -0.2, 0);
+            m.scale(0.12, 0.2, 0.12);
+            drawCube(m, [0.6, 0.6, 0.6, 1.0]);
+
+            m = new Matrix4();
+            m.setTranslate(-0.3, 0.05, -0.2);
+            m.rotate(g_frontLeftLeg, 0, 0, 1);
+            m.translate(0, -0.4, 0);
+            m.rotate(-g_frontLeftKnee, 0, 0, 1);
+            m.translate(0, -0.15, 0);
+            m.scale(0.1, 0.15, 0.1);
+            drawCube(m, [0.55, 0.55, 0.55, 1.0]);
+
+            //tail
+            m = new Matrix4();
+            m.setTranslate(-0.8, 0.3, 0);
+            m.rotate(g_tail, 0, 1, 0);
+            m.rotate(30, 0, 0, 1);
+            m.translate(0, -0.15, 0);
+            m.scale(0.05, 0.15, 0.05);
+            drawCylinder(m, [0.4, 0.3, 0.2, 1.0]);
+
+            //left tusk
+            m = new Matrix4();
+            m.setTranslate(0.85, 0.25, 0.1);
+            m.rotate(-20, 0, 0, 1);
+            m.translate(0.1, 0, 0);
+            m.scale(0.1, 0.03, 0.03);
+            drawCylinder(m, [1.0, 1.0, 0.9, 1.0]);
+
+            //right tusk
+            m = new Matrix4();
+            m.setTranslate(0.85, 0.25, -0.1);
+            m.rotate(-20, 0, 0, 1);
+            m.translate(0.1, 0, 0);
+            m.scale(0.1, 0.03, 0.03);
+            drawCylinder(m, [1.0, 1.0, 0.9, 1.0]);
+        }
+
+        function drawCube(modelMatrix, color) {
+            const vertices = new Float32Array([
+                // Front face
+                -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5,
+                -0.5, -0.5,  0.5,  0.5,  0.5,  0.5, -0.5,  0.5,  0.5,
+                // Back face
+                -0.5, -0.5, -0.5, -0.5,  0.5, -0.5,  0.5,  0.5, -0.5,
+                -0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5, -0.5, -0.5,
+                // Top face
+                -0.5,  0.5, -0.5, -0.5,  0.5,  0.5,  0.5,  0.5,  0.5,
+                -0.5,  0.5, -0.5,  0.5,  0.5,  0.5,  0.5,  0.5, -0.5,
+                // Bottom face
+                -0.5, -0.5, -0.5,  0.5, -0.5, -0.5,  0.5, -0.5,  0.5,
+                -0.5, -0.5, -0.5,  0.5, -0.5,  0.5, -0.5, -0.5,  0.5,
+                // Right face
+                 0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5,  0.5,  0.5,
+                 0.5, -0.5, -0.5,  0.5,  0.5,  0.5,  0.5, -0.5,  0.5,
+                // Left face
+                -0.5, -0.5, -0.5, -0.5, -0.5,  0.5, -0.5,  0.5,  0.5,
+                -0.5, -0.5, -0.5, -0.5,  0.5,  0.5, -0.5,  0.5, -0.5
+            ]);
+
+            const colors = new Float32Array(36 * 4);
+            for (let i = 0; i < 36; i++) {
+                colors[i * 4] = color[0];
+                colors[i * 4 + 1] = color[1];
+                colors[i * 4 + 2] = color[2];
+                colors[i * 4 + 3] = color[3];
+            }
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+            
+            const a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+            gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(a_Position);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, cubeColorBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+            
+            const a_Color = gl.getAttribLocation(gl.program, 'a_Color');
+            gl.vertexAttribPointer(a_Color, 4, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(a_Color);
+
+            const u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
+            gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+
+            gl.drawArrays(gl.TRIANGLES, 0, 36);
+        }
+
+        function drawCylinder(modelMatrix, color) {
+            const segments = 20;
+            const vertices = [];
+            const colors = [];
+
+            // Generate cylinder vertices
+            for (let i = 0; i < segments; i++) {
+                const angle1 = (i / segments) * Math.PI * 2;
+                const angle2 = ((i + 1) / segments) * Math.PI * 2;
+
+                const x1 = Math.cos(angle1) * 0.5;
+                const z1 = Math.sin(angle1) * 0.5;
+                const x2 = Math.cos(angle2) * 0.5;
+                const z2 = Math.sin(angle2) * 0.5;
+
+                //Side
+                vertices.push(x1, -0.5, z1);
+                vertices.push(x2, -0.5, z2);
+                vertices.push(x2,  0.5, z2);
+
+                vertices.push(x1, -0.5, z1);
+                vertices.push(x2,  0.5, z2);
+                vertices.push(x1,  0.5, z1);
+
+                //Top
+                vertices.push(0, 0.5, 0);
+                vertices.push(x1, 0.5, z1);
+                vertices.push(x2, 0.5, z2);
+
+                //Bottom
+                vertices.push(0, -0.5, 0);
+                vertices.push(x2, -0.5, z2);
+                vertices.push(x1, -0.5, z1);
+            }
+
+            for (let i = 0; i < vertices.length / 3; i++) {
+                colors.push(color[0], color[1], color[2], color[3]);
+            }
+
+            const vertexArray = new Float32Array(vertices);
+            const colorArray = new Float32Array(colors);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, cylinderVertexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, vertexArray, gl.STATIC_DRAW);
+            
+            const a_Position = gl.getAttribLocation(gl.program, 'a_Position');
+            gl.vertexAttribPointer(a_Position, 3, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(a_Position);
+
+            gl.bindBuffer(gl.ARRAY_BUFFER, cylinderColorBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, colorArray, gl.STATIC_DRAW);
+            
+            const a_Color = gl.getAttribLocation(gl.program, 'a_Color');
+            gl.vertexAttribPointer(a_Color, 4, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(a_Color);
+
+            const u_ModelMatrix = gl.getUniformLocation(gl.program, 'u_ModelMatrix');
+            gl.uniformMatrix4fv(u_ModelMatrix, false, modelMatrix.elements);
+
+            gl.drawArrays(gl.TRIANGLES, 0, vertices.length / 3);
+        }
+
+        //Matrix4 implement from cuon-matrix.js!!
+
+        function initShaders(gl, vshader, fshader) {
+            const program = createProgram(gl, vshader, fshader);
+            if (!program) {
+                console.log('Failed to create program');
+                return false;
+            }
+
+            gl.useProgram(program);
+            gl.program = program;
+
+            return true;
+        }
+
+        function createProgram(gl, vshader, fshader) {
+            const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vshader);
+            const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fshader);
+            if (!vertexShader || !fragmentShader) {
+                return null;
+            }
+
+            const program = gl.createProgram();
+            if (!program) {
+                return null;
+            }
+
+            gl.attachShader(program, vertexShader);
+            gl.attachShader(program, fragmentShader);
+
+            gl.linkProgram(program);
+
+            const linked = gl.getProgramParameter(program, gl.LINK_STATUS);
+            if (!linked) {
+                const error = gl.getProgramInfoLog(program);
+                console.log('Failed to link program: ' + error);
+                gl.deleteProgram(program);
+                gl.deleteShader(fragmentShader);
+                gl.deleteShader(vertexShader);
+                return null;
+            }
+            return program;
+        }
+
+        function loadShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            if (shader == null) {
+                console.log('unable to create shader');
+                return null;
+            }
+
+            gl.shaderSource(shader, source);
+
+            gl.compileShader(shader);
+
+            const compiled = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+            if (!compiled) {
+                const error = gl.getShaderInfoLog(shader);
+                console.log('Failed to compile shader: ' + error);
+                gl.deleteShader(shader);
+                return null;
+            }
+
+            return shader;
+        }
+
+        // Start the program
+        window.onload = main;
+    </script>
+</body>
+</html>
