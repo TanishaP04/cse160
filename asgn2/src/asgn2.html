@@ -296,9 +296,9 @@
             document.getElementById('resetBtn').addEventListener('click', function() {
                 g_mouseRotationX = 0;
                 g_mouseRotationY = 0;
-                g_globalRotation = 30;
-                document.getElementById('globalRotation').value = 30;
-                document.getElementById('globalRotationValue').textContent = '30°';
+                g_Rotation = 30;
+                document.getElementById('Rotation').value = 30;
+                document.getElementById('RotationValue').textContent = '30°';
             });
         }
 
@@ -392,10 +392,10 @@
             const globalMatrix = new Matrix4();
             globalMatrix.setRotate(g_mouseRotationX, 1, 0, 0);
             globalMatrix.rotate(g_mouseRotationY, 0, 1, 0);
-            globalMatrix.rotate(g_globalRotation, 0, 1, 0);
+            globalMatrix.rotate(g_Rotation, 0, 1, 0);
             
-            const u_GlobalRotation = gl.getUniformLocation(gl.program, 'u_GlobalRotation');
-            gl.uniformMatrix4fv(u_GlobalRotation, false, globalMatrix.elements);
+            const u_Rotation = gl.getUniformLocation(gl.program, 'u_Rotation');
+            gl.uniformMatrix4fv(u_Rotation, false, globalMatrix.elements);
 
             //elephant body
             let m = new Matrix4();
