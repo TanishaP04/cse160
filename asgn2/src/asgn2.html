@@ -474,7 +474,7 @@
 
             // Lower leg
             m = new Matrix4(upperLegMatrix);
-            m.setTranslate(0.25, -0.18, 0);
+            m.translate(0.25, -0.18, 0);
             m.rotate(g_frontLeftKnee, 0, 0, 1);
             m.translate(0, -0.13, 0);
             const lowerLegMatrix = new Matrix4(m);
