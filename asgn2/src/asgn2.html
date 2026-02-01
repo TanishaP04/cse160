@@ -250,14 +250,7 @@
                 g_frontLeftKnee = this.value;
                 document.getElementById('frontLeftKneeValue').textContent = this.value + '°';
             });
-
-            // Front left foot
-            const frontLeftFootSlider = document.getElementById('frontLeftFoot');
-            frontLeftFootSlider.addEventListener('input', function() {
-                g_frontLeftFoot = this.value;
-                document.getElementById('frontLeftFootValue').textContent = this.value + '°';
-            });
-
+            
             // Trunk base
             const trunkBaseSlider = document.getElementById('trunkBase');
             trunkBaseSlider.addEventListener('input', function() {
@@ -265,7 +258,7 @@
                 document.getElementById('trunkBaseValue').textContent = this.value + '°';
             });
 
-            // Trunk mid
+            // Trunk middle
             const trunkMiddleSlider = document.getElementById('trunkMiddle');
             trunkMiddleSlider.addEventListener('input', function() {
                 g_trunkMiddle = this.value;
