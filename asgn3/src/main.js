@@ -39,7 +39,7 @@ const FSHADER_SOURCE = `
 
 function main() {
     canvas = document.getElementById('webgl');
-    gl = getWebGLContext(canvas);
+    gl = canvas.getContext('webgl');
     
     if (!gl) {
         console.log('Failed to get WebGL context');
@@ -201,7 +201,7 @@ function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     
     let sky = new Cube();
-    sky.setColor(0.53, 0.81, 0.92, 1.0);
+    sky.setColor(0.50, 0.80, 0.90, 1.0);
     sky.translate(16, 16, 16);
     sky.scale(500, 500, 500);
     sky.render(gl, program, camera);
