@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Phong Lighting</title>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+
+<canvas id="webgl"></canvas>
+
+<br><br>
+
+<button id="lightingBtn">Toggle Lighting</button>
+<button id="normalBtn">Toggle Normal Visualization</button>
+<button id="spotBtn">Toggle Spotlight</button>
+
+<br><br>
+
+Light X:
+<input type="range" id="lightX" min="-5" max="5" step="0.1" value="2">
+
+Camera Angle:
+<input type="range" id="cameraAngle" min="0" max="360" step="1" value="45">
+
+<script src="cuon-matrix.js"></script>
+<script src="shaders.js"></script>
+<script src="shapes.js"></script>
+<script src="main.js"></script>
+
+</body>
+</html>
