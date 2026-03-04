@@ -23,6 +23,11 @@ function main() {
     document.getElementById("cameraAngle").oninput = e => cameraAngle = parseFloat(e.target.value);
 
     tick();
+
+    loadOBJ("model.obj", function(objData) {
+        initBuffers(objData);
+        render();
+    });
 }
 
 function initBuffers(obj) {
@@ -86,7 +91,8 @@ function render() {
     gl.uniform3fv(gl.getUniformLocation(gl.program,"u_SpotDirection"), [0,-1,0]);
     gl.uniform1f(gl.getUniformLocation(gl.program,"u_SpotCutoff"), 0.8);
 
-    gl.drawArrays(gl.TRIANGLES, 0, 36);
-}
+    objVertexCount = objData.vertices.length / 3; 
+    gl.drawArrays(gl.TRIANGLES, 0, objVertexCount);}
+
 
 main();
