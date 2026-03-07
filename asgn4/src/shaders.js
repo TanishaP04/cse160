@@ -13,71 +13,68 @@ varying vec3 v_Normal;
 varying vec3 v_WorldPos;
 
 void main() {
-    vec4 worldPos = u_ModelMatrix * a_Position;
-    v_WorldPos = worldPos.xyz;
-
-    v_Normal = normalize((u_NormalMatrix * vec4(a_Normal,0.0)).xyz);
-
-    gl_Position = u_ProjMatrix * u_ViewMatrix * worldPos;
+    vec4 worldPos  = u_ModelMatrix * a_Position;
+    v_WorldPos     = worldPos.xyz;
+    v_Normal       = normalize((u_NormalMatrix * vec4(a_Normal, 0.0)).xyz);
+    gl_Position    = u_ProjMatrix * u_ViewMatrix * worldPos;
 }
 `;
 
 const FSHADER_SOURCE = `
 precision mediump float;
 
-uniform vec3 u_LightPos;
-uniform vec3 u_ViewPos;
-uniform vec3 u_LightColor;
+uniform vec3  u_LightPos;
+uniform vec3  u_ViewPos;
+uniform vec3  u_LightColor;
+uniform vec3  u_ObjectColor;
 
-uniform bool u_LightingOn;
-uniform bool u_NormalVis;
+uniform bool  u_LightingOn;
+uniform bool  u_NormalVis;
 
-uniform vec3 u_SpotDirection;
+uniform vec3  u_SpotDirection;
 uniform float u_SpotCutoff;
-uniform bool u_SpotOn;
+uniform bool  u_SpotOn;
 
 varying vec3 v_Normal;
 varying vec3 v_WorldPos;
 
 void main() {
 
+    // --- Normal visualisation mode ---
     if (u_NormalVis) {
-        gl_FragColor = vec4(normalize(v_Normal)*0.5+0.5,1.0);
+        gl_FragColor = vec4(normalize(v_Normal) * 0.5 + 0.5, 1.0);
         return;
     }
 
-    vec3 objectColor = vec3(0.8,0.4,0.2);
-
+    // --- Lighting off: flat object colour ---
     if (!u_LightingOn) {
-        gl_FragColor = vec4(objectColor,1.0);
+        gl_FragColor = vec4(u_ObjectColor, 1.0);
         return;
     }
 
-    vec3 norm = normalize(v_Normal);
+    // --- Phong shading ---
+    vec3 norm     = normalize(v_Normal);
     vec3 lightDir = normalize(u_LightPos - v_WorldPos);
+    vec3 viewDir  = normalize(u_ViewPos  - v_WorldPos);
+    vec3 reflDir  = reflect(-lightDir, norm);
 
     float diff = max(dot(norm, lightDir), 0.0);
+    float spec = pow(max(dot(viewDir, reflDir), 0.0), 32.0);
 
-    vec3 viewDir = normalize(u_ViewPos - v_WorldPos);
-    vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32.0);
+    vec3 ambient  = 0.2  * u_LightColor;
+    vec3 diffuse  = diff * u_LightColor;
+    vec3 specular = 0.5  * spec * u_LightColor;
 
-    float ambientStrength = 0.2;
-    vec3 ambient = ambientStrength * u_LightColor;
-    vec3 diffuse = diff * u_LightColor;
-    vec3 specular = 0.5 * spec * u_LightColor;
-
+    // --- Spotlight attenuation ---
     if (u_SpotOn) {
-        vec3 spotDir = normalize(u_SpotDirection);
-        float theta = dot(lightDir, -spotDir);
+        float theta = dot(lightDir, -normalize(u_SpotDirection));
         if (theta < u_SpotCutoff) {
-            diffuse *= 0.0;
-            specular *= 0.0;
+            diffuse  = vec3(0.0);
+            specular = vec3(0.0);
         }
     }
 
-    vec3 result = (ambient + diffuse + specular) * objectColor;
-
-    gl_FragColor = vec4(result,1.0);
+    vec3 result = (ambient + diffuse + specular) * u_ObjectColor;
+    gl_FragColor = vec4(result, 1.0);
 }
 `;

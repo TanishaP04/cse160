@@ -4,31 +4,36 @@
     <meta charset="UTF-8">
     <title>Phong Lighting</title>
     <style>
-        body { margin: 0; overflow: hidden; }
+        body { margin: 0; background: #111; color: #eee; font-family: sans-serif; }
         canvas { display: block; }
+        #controls { padding: 10px; }
+        label { margin-right: 8px; }
     </style>
 </head>
 <body>
 
-<canvas id="webgl"></canvas>
+<canvas id="webgl" width="800" height="600"></canvas>
 
-<br><br>
+<div id="controls">
+    <button id="lightingBtn">Toggle Lighting</button>
+    <button id="normalBtn">Toggle Normal Visualization</button>
+    <button id="spotBtn">Toggle Spotlight</button>
 
-<button id="lightingBtn">Toggle Lighting</button>
-<button id="normalBtn">Toggle Normal Visualization</button>
-<button id="spotBtn">Toggle Spotlight</button>
+    <br><br>
 
-<br><br>
+    <label>Light X:
+        <input type="range" id="lightX" min="-5" max="5" step="0.1" value="2">
+    </label>
 
-Light X:
-<input type="range" id="lightX" min="-5" max="5" step="0.1" value="2">
-
-Camera Angle:
-<input type="range" id="cameraAngle" min="0" max="360" step="1" value="45">
+    <label>Camera Angle:
+        <input type="range" id="cameraAngle" min="0" max="360" step="1" value="45">
+    </label>
+</div>
 
 <script src="cuon-matrix.js"></script>
 <script src="shaders.js"></script>
 <script src="shapes.js"></script>
+<script src="objLoad.js"></script>
 <script src="main.js"></script>
 
 </body>
