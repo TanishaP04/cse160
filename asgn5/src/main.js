@@ -114,18 +114,7 @@ rectLight.lookAt(0, 0, 0);
 scene.add(rectLight);
 scene.add(new RectAreaLightHelper(rectLight));
 
-// ─── Ground Plane ─────────────────────────────────────────────────────────────
-const groundTex = texLoader.load(
-  'https://threejs.org/examples/textures/hardwood2_diffuse.jpg',
-  (t) => { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(8, 8); }
-);
-const ground = new THREE.Mesh(
-  new THREE.PlaneGeometry(80, 80),
-  new THREE.MeshStandardMaterial({ map: groundTex, roughness: 0.8 })
-);
-ground.rotation.x = -Math.PI / 2;
-ground.receiveShadow = true;
-scene.add(ground);
+
 
 // ─── Helper: place object ─────────────────────────────────────────────────────
 function place(mesh, x, y, z) {
