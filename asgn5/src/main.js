@@ -185,6 +185,7 @@ place(new THREE.Mesh(new THREE.ConeGeometry(0.8, 2.5, 32), matPurple), 14, 1.25,
 });
 
 // ─── GLTF Model (Flower.glb) ────────────────────────────────────────────────
+// Flower by Poly by Google [CC-BY] via Poly Pizza
 const gltfLoader = new GLTFLoader();
 let flowerModel = null;
 gltfLoader.load(
